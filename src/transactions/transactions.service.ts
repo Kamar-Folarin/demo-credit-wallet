@@ -18,7 +18,7 @@ export class TransactionsService {
     ]);
  
     // Find the amount the sender wants to send
-    const senderNewBalance = sender.balance - dto.amount;
+    const senderNewBalance = sender.user.balance - dto.amount;
 
     // Check if the sender has enough funds
     if(senderNewBalance < 0 ) {
@@ -36,13 +36,12 @@ export class TransactionsService {
     ]);
 
     const transactionDto = {
-      userId: sender.id,
+      userId: sender.user.id,
       to: receiver.id,
       amount: dto.amount,
       title: 'send-money',
     }
  
-    // Update the manager's Transactions
     this.transactionsRepository.create(transactionDto);
   }
 
@@ -50,13 +49,13 @@ export class TransactionsService {
 
   async checkBalance(userId: number) {
     const user = await this.userService.getUserById(userId);
-    return { amount: user.balance}
+    return { amount: user.user.balance}
   }
 
 
   async fundAccount(userId: number, amount: number) {
     const user = await this.userService.getUserById(userId);
-    const newBalance = user.balance + amount;
+    const newBalance = user.user.balance + amount;
 
     if (newBalance){
       this.userService.updateBalance(userId, newBalance);
@@ -69,14 +68,13 @@ export class TransactionsService {
       title: 'fund account',
     }
  
-    // Update the manager's Transactions
     this.transactionsRepository.create(transactionDto);
 
   }
 
   async  withdrawFromAccount(userId: number, amount: number) {
     const user = await this.userService.getUserById(userId);
-    const newBalance = user.balance - amount;
+    const newBalance = user.user.balance - amount;
 
     if(newBalance < 0) {
       return "insufficient funds";
@@ -92,7 +90,6 @@ export class TransactionsService {
       title: 'Withdraw from account',
     }
  
-    // Update the manager's Transactions
     this.transactionsRepository.create(transactionDto);
   }
 

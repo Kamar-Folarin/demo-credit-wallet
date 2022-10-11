@@ -11,11 +11,7 @@ export class UserRepository {
     async create(createUserDto: CreateUserDto) {
         try {
           const users: User = await this.knex.table('users').insert({
-            firstName: createUserDto.firstName,
-            lastName: createUserDto.lastName,
-            email: createUserDto.email,
-            password: createUserDto.password,
-            username: createUserDto.username
+            createUserDto
           }).into('users');
     
           return { users };
@@ -25,16 +21,20 @@ export class UserRepository {
       }
 
       async getUserData(payload: any) {
-        const user: User  = await this.knex.table('users').select('+hash +salt').where(payload);
+        const user: User  = await this.knex
+        .table('users').select('+hash +salt')
+        .where(payload).then((result: User[]) => result[0]);
         return user;
       }
 
-      async findOne(id: number): Promise<User> {
+      async findOne(id: number) {
         if (!id) {
           throw new NotFoundException(`User ${id} does not exist`);
         }
-        const users: User = await this.knex.table('users').where('id', id);
-        return { users };
+        const user = await this.knex
+        .table('users').where('id', id)
+        .then((result: User[]) => result[0]);
+        return { user };
       }
     
       async update(id: number, updateUserDto: UpdateUserDto) {
@@ -67,13 +67,13 @@ export class UserRepository {
     }
 
     async findOneByUsername(username: string) {
-        const users: User = await this.knex.table('users').where({ username });
+        const users: User = await this.knex.table('users').where({ username }).then((result: User[]) => result[0]);
 
         return { users };
     }
 
     async findOneByEmail(email: string) {
-        const users: User = await this.knex.table('users').where({ email });
+        const users: User = await this.knex.table('users').where({ email }).then((result: User[]) => result[0]);
 
         return { users };
     }
