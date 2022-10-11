@@ -16,9 +16,12 @@ export class TransactionsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({
-    description: 'Returns the response whether the money was sent or not',   
+    description: 'Returns the response whether the money was sent or not',
   })
-  async sendMoney(@AuthUser() user: User,@Body() transaction: TransferFundsDto) {
+  async sendMoney(
+    @AuthUser() user: User,
+    @Body() transaction: TransferFundsDto,
+  ) {
     return await this.transactionsService.sendMoney(user.id, transaction);
   }
 
@@ -38,8 +41,14 @@ export class TransactionsController {
   @ApiOkResponse({
     description: 'Funds the account of the given user',
   })
-  async fundAccount(@AuthUser() user: User,@Body() transaction: TransferFundsDto) {
-    return await this.transactionsService.fundAccount(user.id, transaction.amount);
+  async fundAccount(
+    @AuthUser() user: User,
+    @Body() transaction: TransferFundsDto,
+  ) {
+    return await this.transactionsService.fundAccount(
+      user.id,
+      transaction.amount,
+    );
   }
 
   @Post('withdraw-money')
@@ -48,9 +57,13 @@ export class TransactionsController {
   @ApiOkResponse({
     description: 'Withdraw funds from the given account',
   })
-  async withdrawMoney(@AuthUser() user: User,@Body() transaction: WithdrawFundsDto) {
-    return await this.transactionsService.withdrawFromAccount(user.id, transaction.amount || 0);
+  async withdrawMoney(
+    @AuthUser() user: User,
+    @Body() transaction: WithdrawFundsDto,
+  ) {
+    return await this.transactionsService.withdrawFromAccount(
+      user.id,
+      transaction.amount || 0,
+    );
   }
-
-
 }

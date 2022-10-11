@@ -16,7 +16,7 @@ export class UsersService {
     return this.userRepository.update(id, updateUserDto);
   }
 
-  async getUserById(id: number) {
+  async getUserById(id: string) {
     return this.userRepository.findOne(id);
   }
 
@@ -28,9 +28,7 @@ export class UsersService {
     return this.userRepository.getUserData(payload);
   }
 
-  async getUserByUsername(
-    username: string,
-  ) {
+  async getUserByUsername(username: string) {
     const user = await this.userRepository.findOneByUsername(username);
 
     return user;
@@ -42,8 +40,7 @@ export class UsersService {
     }
   }
 
-  async updateBalance(id: number, balance: number) {
+  async updateBalance(id: string, balance: number) {
     return this.userRepository.updateBalance(id, balance.toFixed(8));
   }
-
 }
