@@ -15,7 +15,14 @@ describe('UsersController', () => {
       controllers: [UsersController],
       providers: [
         ConfigService,
-        { provide: AuthService, useValue: {} },
+        {
+          provide: AuthService,
+          useValue: {
+            saltPassword: jest.fn(),
+            validateUser: jest.fn(),
+            login: jest.fn(),
+          },
+      },
         {
           provide: UsersService,
           useValue: {

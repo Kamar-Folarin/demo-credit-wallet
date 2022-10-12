@@ -17,6 +17,8 @@ export class TransactionSchema {
         table.string('title', 255).notNullable();
         table.string('fromAccount', 255).notNullable();
         table.string('toAccount', 255).notNullable();
+        table.string('userId', 255).notNullable();
+        table.string('receiverId', 255).notNullable();
         table
           .dateTime('createdAt')
           .notNullable()

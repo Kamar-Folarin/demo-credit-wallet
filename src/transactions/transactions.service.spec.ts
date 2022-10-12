@@ -1,4 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { WalletRepository } from '../wallets/wallet.repository';
+import { UserRepository } from '../users/users.repository';
 import { UsersService } from '../users/users.service';
 import { WalletService } from '../wallets/wallet.service';
 import { TransactionsRepository } from './transactions.repository';
@@ -20,6 +22,21 @@ describe('TransactionsService', () => {
           findOne: jest.fn(),
         },
       },
+      {
+        provide: UserRepository,
+        useValue: {
+          create: jest.fn(),
+          findOne: jest.fn(),
+          update: jest.fn(),
+          findOneByEmail: jest.fn(),
+          findOneByUsername: jest.fn(),
+        },},
+        {
+          provide:WalletRepository,
+          useValue: {
+            createWallet: jest.fn(),
+            updateWallet: jest.fn(),
+          },},
       UsersService,
       WalletService,
       ],
