@@ -1,7 +1,22 @@
 export interface Transactions {
-  id: number;
+  id: string;
   amount: number;
   title: string;
-  userId: string;
-  to: string;
+  fromAccount: string;
+  toAccount: string;
+}
+
+export interface ICreateTransaction {
+  amount: number;
+  title: string;
+  fromAccount: string;
+  toAccount: string;
+}
+
+export interface ITransactions {
+  id: string;
+  amount: number;
+  title: string;
+  fromAccount: string;
+  toAccount: string;
 }

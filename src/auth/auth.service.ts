@@ -4,14 +4,12 @@ import validator from 'validator';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { appConstant } from '../common/constants/app.constants';
-import { RedisService } from '../common/redis/redis.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private redisService: RedisService,
   ) {}
 
   async saltPassword(
@@ -50,7 +48,7 @@ export class AuthService {
 
   async login(user: any) {
     const payload = {
-      sub: user._id,
+      sub: user.id,
       email: user.email,
       username: user.username,
       general: user.general || {},
@@ -60,32 +58,10 @@ export class AuthService {
     const refreshToken = this.jwtService.sign(payload, {
       expiresIn: appConstant.TOKENS.REFRESH.JWT_DURATION,
     });
-    // Store refresh token in redis with expire time
-    await this.redisService.set(
-      refreshToken,
-      refreshToken,
-      appConstant.TOKENS.REFRESH.REDIS_DURATION,
-    );
-
     return {
       access_token: this.jwtService.sign(payload),
-      refreshToken,
-    };
-  }
-
-  async refreshToken(user, token) {
-    const refreshToken = await this.redisService.get(token);
-    if (!refreshToken) {
-      throw new BadRequestException('Invalid refresh token');
+      }
     }
-    const decoded = this.jwtService.decode(refreshToken);
 
-    if (decoded.sub !== user._id) {
-      await this.redisService.delete(refreshToken);
-      throw new UnauthorizedException();
-    }
-    await this.redisService.delete(refreshToken);
-    return this.login(user);
-  }
 
 }

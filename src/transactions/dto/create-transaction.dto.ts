@@ -5,16 +5,17 @@ export class CreateTransactionsDto {
   @ApiProperty()
   @IsNumber()
   amount: number;
-
+  
   @ApiProperty()
   @IsString()
   title: string;
 
   @ApiProperty()
   @IsString()
-  userId: string;
+  fromAccount: string;
 
   @ApiProperty()
   @IsString()
-  to: string;
+  toAccount: string;
+
 }

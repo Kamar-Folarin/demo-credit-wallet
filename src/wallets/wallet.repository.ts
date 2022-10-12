@@ -9,6 +9,7 @@ import {
   IWalletUpdateQuery,
 } from './types/wallet.types';
 import { WalletSchemaName } from './wallet.schema';
+import {v4 as uuidv4} from 'uuid';
 
 export class WalletRepository {
   private model: Knex.QueryBuilder;
@@ -16,19 +17,21 @@ export class WalletRepository {
     this.model = this.knex.table(WalletSchemaName);
   }
 
-  async createWallet(createWalletDto: { userId: string }) {
+  async createWallet(createWalletDto: { userId: string, name: string }) {
     try {
       await this.model
         .insert({
+          id: uuidv4(),
           balance: 0,
           userId: createWalletDto.userId,
+          name: createWalletDto.name,
         })
         .into(WalletSchemaName)
         .returning('*');
       const wallet = await this.knex
         .select()
         .from(WalletSchemaName)
-        .where(createWalletDto.userId);
+        .where({userId: createWalletDto.userId});
       return wallet[0];
     } catch (err) {
       throw new NotFoundException(err);
@@ -56,6 +59,7 @@ export class WalletRepository {
       const wallet: IWallet = await this.model
         .where('id', walletId)
         .update(walletUpdateQuery);
+        console.log('wallet upadted', wallet);
       return wallet;
     } catch (err) {
       throw new NotFoundException(err);

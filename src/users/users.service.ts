@@ -9,20 +9,14 @@ export class UsersService {
   constructor(private readonly userRepository: UserRepository) {}
 
   async createUser(createUserDto) {
-    return this.userRepository.create(createUserDto);
-  }
 
-  async updateUser(id: number, updateUserDto: UpdateUserDto) {
-    return this.userRepository.update(id, updateUserDto);
+    return this.userRepository.create(createUserDto);
   }
 
   async getUserById(id: string) {
     return this.userRepository.findOne(id);
   }
 
-  async removeUser(id: number) {
-    return this.userRepository.remove(id);
-  }
 
   async getUserData(payload: any) {
     return this.userRepository.getUserData(payload);
@@ -38,9 +32,6 @@ export class UsersService {
     if (email !== undefined) {
       return this.userRepository.findOneByEmail(email);
     }
-  }
-
-  async updateBalance(id: string, balance: number) {
-    return this.userRepository.updateBalance(id, balance.toFixed(8));
+    return undefined;
   }
 }

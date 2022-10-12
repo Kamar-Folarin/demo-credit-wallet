@@ -16,8 +16,9 @@ export class UserSchema {
         table.string('firstName', 255).notNullable();
         table.string('lastName', 255).notNullable();
         table.string('email', 255).unique().notNullable();
-        table.string('password', 255).notNullable();
-        table.float('balance', 255).notNullable();
+        table.string('username', 255).unique().notNullable();
+        table.string('hash', 255).notNullable();
+        table.string('salt', 255).notNullable();
         table
           .dateTime('createdAt')
           .notNullable()

@@ -9,30 +9,42 @@ import { Knex } from 'knex';
 import { InjectModel } from 'nest-knexjs';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './interface/user.interface';
+import { ICreateUser, User } from './interface/user.interface';
+import { UserSchemaName } from './user.schema';
+import {v4 as uuidv4} from 'uuid';
 
 export class UserRepository {
-  constructor(@Inject(KNEX_CONNECTION) private readonly knex: Knex) {}
+  private model: Knex.QueryBuilder;
+  constructor(@Inject(KNEX_CONNECTION) private readonly knex: Knex) {
+    this.model = this.knex.table(UserSchemaName);
+  }
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: ICreateUser) {
     try {
-      const users: User = await this.knex
-        .table('users')
+      await this.model
         .insert({
-          createUserDto,
-        })
-        .into('users');
-
-      return { users };
+          id: uuidv4(),
+          username: createUserDto.username,
+          email: createUserDto.email,
+          firstName: createUserDto.firstName,
+          lastName: createUserDto.lastName,
+          hash: createUserDto.hash,
+          salt: createUserDto.salt,
+        });
+      const user = await this.knex
+        .select()
+        .from(UserSchemaName)
+        .where({username: createUserDto.username}).then((result: User[]) => result[0])
+        return user;
+      
     } catch (err) {
       throw new NotFoundException(err);
     }
   }
 
   async getUserData(payload: any) {
-    const user: User = await this.knex
-      .table('users')
-      .select('+hash +salt')
+    const user: User = await this.model
+      .select('hash', 'salt')
       .where(payload)
       .then((result: User[]) => result[0]);
     return user;
@@ -42,11 +54,16 @@ export class UserRepository {
     if (!id) {
       throw new NotFoundException(`User ${id} does not exist`);
     }
-    const user = await this.knex
-      .table('users')
-      .where('id', id)
+    try{
+      const users: User = await this.model
+      .select()
+      .from(UserSchemaName)
+      .where({ id })
       .then((result: User[]) => result[0]);
-    return { user };
+    return users;
+    }catch(err){
+      throw new NotFoundException(err);
+    }
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
@@ -61,47 +78,49 @@ export class UserRepository {
           username: updateUserDto.username,
         });
 
-      return { users };
+      return users;
     } catch (err) {
       throw new HttpException(err, HttpStatus.BAD_REQUEST);
     }
   }
 
-  async remove(id: number) {
-    if (!id) {
-      throw new NotFoundException(`User ${id} does not exist`);
-    }
-    const users = await this.knex.table('users').where('id', id).del();
-    return { users };
-  }
-
   async findAll() {
     const users = await this.knex.table('users');
 
-    return { users };
+    return users;
   }
 
   async findOneByUsername(username: string) {
-    const users: User = await this.knex
-      .table('users')
+    try{
+      const users: User = await this.model
+      .select()
+      .from(UserSchemaName)
       .where({ username })
       .then((result: User[]) => result[0]);
-
-    return { users };
+    return users;
+    }catch(err){
+      throw new NotFoundException(err);
+    }
   }
 
   async findOneByEmail(email: string) {
-    const users: User = await this.knex
-      .table('users')
+    try{
+      const users: User = await this.model
+      .select()
+      .from(UserSchemaName)
       .where({ email })
+      .limit(1)
       .then((result: User[]) => result[0]);
-
-    return { users };
+    return  users ;
+    }catch(err){
+      throw new NotFoundException(err);
+    }
   }
+
 
   async updateBalance(id: string, newBalance: string) {
     try {
-      const res: User = await this.knex('users')
+      const res: User = await this.model
         .where({ id: id })
         .update({ balance: newBalance });
 

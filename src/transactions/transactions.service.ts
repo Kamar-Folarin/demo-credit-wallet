@@ -1,42 +1,46 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { WalletService } from '../wallets/wallet.service';
 import { UsersService } from '../users/users.service';
+import { CreateTransactionsDto } from './dto/create-transaction.dto';
 import { TransferFundsDto } from './dto/transfer.dto';
+import { ICreateTransaction, ITransactions } from './interface/transactions.interface';
 import { TransactionsRepository } from './transactions.repository';
 @Injectable()
 export class TransactionsService {
   constructor(
     private userService: UsersService,
     private transactionsRepository: TransactionsRepository,
+    private walletService: WalletService,
   ) {}
 
-  async sendMoney(userId: string, dto: TransferFundsDto) {
+  async sendMoney(userId: string, dto: TransferFundsDto)  {
     // Get the user
-    const [sender, receiver] = await Promise.all([
+    const [sender, senderWallet, receiverWallet] = await Promise.all([
       await this.userService.getUserById(userId),
-      ,
-      await this.userService.getUserById(dto.to),
+      await this.walletService.getWalletBalance(userId,{walletId: dto.fromAccount}),
+      await this.walletService.getWalletBalance(dto.receiverId,{walletId: dto.toAccount})
     ]);
 
     // Find the amount the sender wants to send
-    const senderNewBalance = sender.user.balance - dto.amount;
+    const senderNewBalance = senderWallet.balance - dto.amount;
 
     // Check if the sender has enough funds
     if (senderNewBalance < 0) {
-      return 'insufficient funds';
+      throw new NotFoundException('Insufficient funds');
     }
 
     // Find the amount
-    const receiverNewBalance = receiver.balance + dto.amount;
+    const receiverNewBalance = receiverWallet.balance + dto.amount;
 
-    // Update the balances
+    // Update the Wallet balances
     await Promise.all([
-      this.userService.updateBalance(userId, senderNewBalance),
-      this.userService.updateBalance(dto.to, receiverNewBalance),
+      this.walletService.debitWallet(userId, {walletId: dto.fromAccount, amount: dto.amount,}),
+      this.walletService.creditWallet(userId, {walletId: dto.toAccount, amount: dto.amount,}),
     ]);
 
     const transactionDto = {
-      userId: sender.user.id,
-      to: receiver.id,
+      fromAccount: dto.fromAccount,
+      toAccount: dto.toAccount,
       amount: dto.amount,
       title: 'send-money',
     };
@@ -44,46 +48,42 @@ export class TransactionsService {
     this.transactionsRepository.create(transactionDto);
   }
 
-  async checkBalance(userId: string) {
-    const user = await this.userService.getUserById(userId);
-    return { amount: user.user.balance };
-  }
 
-  async fundAccount(userId: string, amount: number) {
-    const user = await this.userService.getUserById(userId);
-    const newBalance = user.user.balance + amount;
+  async fundAccount(userId: string,account:string, amount: number)  {
+    const user = await this.walletService.getWalletBalance(userId,{walletId: account});
+    const newBalance = user.balance + amount;
 
     if (newBalance) {
-      this.userService.updateBalance(userId, newBalance);
+      this.walletService.creditWallet(userId, {walletId: account, amount: amount});
     }
 
     const transactionDto = {
-      userId: userId,
-      to: userId,
+      fromAccount: userId,
+      toAccount: userId,
       amount: amount,
-      title: 'fund account',
+      title: 'fund your account',
     };
 
-    this.transactionsRepository.create(transactionDto);
+    await this.transactionsRepository.create(transactionDto);
   }
 
-  async withdrawFromAccount(userId: string, amount: number) {
-    const user = await this.userService.getUserById(userId);
-    const newBalance = user.user.balance - amount;
+  async withdrawFromAccount(userId: string,fromAccount: string, amount: number) {
+    const wallet = await this.walletService.getWalletBalance(userId,{walletId: fromAccount});
+    const newBalance = wallet.balance - amount;
 
     if (newBalance < 0) {
-      return 'insufficient funds';
+      throw new NotFoundException('Insufficient funds');
     }
 
-    this.userService.updateBalance(userId, newBalance);
+    this.walletService.debitWallet(userId, {walletId: fromAccount, amount: amount});
 
     const transactionDto = {
-      userId: userId,
-      to: userId,
+      fromAccount: fromAccount,
+      toAccount: null,
       amount: amount,
       title: 'Withdraw from account',
     };
 
-    this.transactionsRepository.create(transactionDto);
+    await this.transactionsRepository.create(transactionDto);
   }
 }

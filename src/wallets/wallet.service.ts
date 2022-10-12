@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { TransactionsService } from '../transactions/transactions.service';
 import { IWallet } from './types/wallet.types';
 import { WalletRepository } from './wallet.repository';
 
@@ -30,6 +31,7 @@ export class WalletService {
     };
 
     return this.walletRepository.update(walletRequest.walletId, transactionDto);
+    
   }
 
   async creditWallet(
@@ -55,7 +57,7 @@ export class WalletService {
     return this.walletRepository.update(walletRequest.walletId, transactionDto);
   }
 
-  async getWalletBallance(
+  async getWalletBalance(
     userId: string,
     walletRequest: { walletId: string },
   ): Promise<IWallet> {
@@ -70,10 +72,12 @@ export class WalletService {
     return wallet;
   }
 
-  async createWallet(userId: string): Promise<IWallet> {
+  async createWallet(userId: string, name: string): Promise<IWallet> {
     const wallet: IWallet = await this.walletRepository.createWallet({
       userId: userId,
+      name: name
     });
+    console.log(wallet);
     return wallet;
   }
 

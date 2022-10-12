@@ -9,3 +9,13 @@ export interface User {
     hash: string;
     balance: number;
 }
+
+
+export interface ICreateUser{
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+    salt: string;
+    hash: string;
+}

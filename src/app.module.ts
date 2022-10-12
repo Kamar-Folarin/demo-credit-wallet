@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { WalletModule } from './wallets/wallet.module';
 import { KnexModule } from '@nestjsplus/knex';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { KnexModule } from '@nestjsplus/knex';
       },
     }),
     UsersModule,
+    PassportModule,
     AuthModule,
     TransactionsModule,
     WalletModule,

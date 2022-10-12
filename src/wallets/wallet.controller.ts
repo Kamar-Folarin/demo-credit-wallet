@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthUser } from '../common/decorators/user.decorator';
 import { User } from '../users/interface/user.interface';
+import { CreateWalletDto } from './dto/create-wallet.dto';
 import { WalletService } from './wallet.service';
 
 @ApiTags('wallet')
@@ -16,11 +17,11 @@ export class WalletsController {
   @ApiOkResponse({
     description: 'Creates a wallet for a user',
   })
-  async createWallet(@AuthUser() user: User) {
-    return await this.walletService.createWallet(user.id);
+  async createWallet(@AuthUser() user: User, @Body() walletData: CreateWalletDto) {
+    return await this.walletService.createWallet(user.id, walletData.name);
   }
 
-  @Post('freeze-wallet')
+  @Post('freeze-wallet/PND')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({
@@ -35,7 +36,7 @@ export class WalletsController {
     });
   }
 
-  @Post('freeze-wallet')
+  @Post('freeze-wallet/PNC')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({
@@ -60,7 +61,7 @@ export class WalletsController {
     @AuthUser() user: User,
     @Param('walletId') walletId: string,
   ) {
-    return await this.walletService.getWalletBallance(user.id, {
+    return await this.walletService.getWalletBalance(user.id, {
       walletId: walletId,
     });
   }

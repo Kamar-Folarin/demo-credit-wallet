@@ -25,16 +25,6 @@ export class TransactionsController {
     return await this.transactionsService.sendMoney(user.id, transaction);
   }
 
-  @Post('check-balance')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    description: 'Returns the curent balance of the user account',
-  })
-  async checkBalance(@AuthUser() user: User) {
-    return await this.transactionsService.checkBalance(user.id);
-  }
-
   @Post('fund-account')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -47,6 +37,7 @@ export class TransactionsController {
   ) {
     return await this.transactionsService.fundAccount(
       user.id,
+      transaction.fromAccount,
       transaction.amount,
     );
   }
@@ -63,6 +54,7 @@ export class TransactionsController {
   ) {
     return await this.transactionsService.withdrawFromAccount(
       user.id,
+      transaction.fromAccount,
       transaction.amount || 0,
     );
   }

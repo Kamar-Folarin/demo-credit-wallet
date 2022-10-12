@@ -19,17 +19,6 @@ export class UsersController {
     private authService: AuthService,
     ) {}
 
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    description: 'Returns other user profile',
-    type: UserProfileDto,
-  })
-  @Get('user/:username')
-  async getUsername(@Param('username') username: string): Promise<any> {
-    return await this.usersService.getUserByUsername(username);
-  }
-
   @Post('user')
   async signUp(
     @Body() createUserDto: CreateUserDto,
@@ -45,14 +34,14 @@ export class UsersController {
     }
 
     // Check if username exist
-    if (username) {
-      const user = await this.usersService.getUserByUsername(username);
-      if (user) {
-        return res.status(HttpStatus.UNPROCESSABLE_ENTITY).json({
-          message: 'Username already exists',
-        });
-      }
-    }
+    // if (username) {
+    //   const user = await this.usersService.getUserByUsername(username);
+    //   if (user) {
+    //     return res.status(HttpStatus.UNPROCESSABLE_ENTITY).json({
+    //       message: 'Username already exists',
+    //     });
+    //   }
+    // }
 
     const { salt, hash } = await this.authService.saltPassword(password);
     // Verify password policy
@@ -76,10 +65,9 @@ export class UsersController {
       lastName,
     };
 
-    const createdUser = (await this.usersService.createUser(userData)) as any;
-   
+    const createdUser = await this.usersService.createUser(userData);
     const loginPayload = {
-      _id: createdUser._id,
+      id: createdUser.id,
       email,
       firstName: createdUser.firstName,
       lastName: createdUser.lastName,
@@ -88,30 +76,5 @@ export class UsersController {
     return res
       .status(HttpStatus.CREATED)
       .send(await this.authService.login(loginPayload));
-  }
-
-  @Get('profile')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    description: 'Get own profile of a user',
-    type: UserProfileDto,
-  })
-  async getProfile(@AuthUser() user): Promise<any> {
-    const userId = user._id;
-    return this.usersService.getUserById(userId);
-  }
-
-  @Get('profile/:username')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    description: 'Get public profile of a user',
-    type: UserProfilePublicDto,
-  })
-  async getProfileByUsername(
-    @Param('username') username: string,
-  ): Promise<any> {
-    return this.usersService.getUserByUsername(username);
   }
 }
